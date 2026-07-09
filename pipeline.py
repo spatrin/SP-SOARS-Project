@@ -25,8 +25,16 @@ def load_finn_june_processed():
 
     pm_tons = finn_flux_to_tons_per_day(pm_june, lat, lon)
 
-    pm_daily = compute_daily_total(pm_tons)
-    pm_total = compute_total_map(pm_tons)
+    # pm_daily = compute_daily_total(pm_tons)
+    # pm_total = compute_total_map(pm_tons)
+    ga_mask = get_georgia_mask(lat.values, lon.values)
+    
+    pm_tons_ga = pm_tons.where(ga_mask)
+    
+    pm_daily = compute_daily_total(pm_tons_ga)
+    
+    pm_total = compute_total_map(
+        pm_tons_ga)
 
     return {
         "pm_tons": pm_tons,     # (time, lat, lon)
@@ -50,6 +58,14 @@ def load_finn_annual_processed():
 
     pm_daily = compute_daily_total(pm_tons)
     pm_total = compute_total_map(pm_tons)
+    
+    ga_mask = get_georgia_mask(lat.values, lon.values)
+    
+    pm_tons_ga = pm_tons.where(ga_mask)
+    
+    pm_daily = compute_daily_total(pm_tons_ga)
+    
+    pm_total = compute_total_map(pm_tons_ga)
 
     return {
         "pm_tons": pm_tons,     # (time, lat, lon)
@@ -81,7 +97,7 @@ def run_daily_spatiotemporal_analysis(epa_gdf, finn, lat, lon):
             continue
 
         # --- 2. map to grid ---
-        epa_grid = epa_to_finn_grid(epa_day, lat, lon, weight_type="count")
+        epa_grid = epa_to_finn_grid(epa_day, lat, lon, weight_type="pm25")
 
         # --- 3. subset FINN ---
         finn_da = finn["pm_tons"]
